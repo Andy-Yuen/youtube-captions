@@ -1,10 +1,9 @@
 function hasChinese() {
     document.querySelector('.ytp-settings-button').click();
-    Array.from(document.querySelectorAll('.ytp-settings-menu .ytp-menuitem'))
-        .find(e => e.innerText.includes('字幕') || e.innerText.includes('Subtitle'))
-        .click();
-    let includeChinese = Array.from(document.querySelectorAll('.ytp-settings-menu .ytp-menuitem'))
-        .find(e => e.innerText.includes('中文') || e.innerText.includes('Chinese'));
+    let settingItems = Array.from(document.querySelectorAll('.ytp-settings-menu .ytp-menuitem'));
+    settingItems.find(e => e.innerText.includes('字幕') || e.innerText.includes('Subtitle')).click();
+    settingItems = Array.from(document.querySelectorAll('.ytp-settings-menu .ytp-menuitem'));
+    let includeChinese = settingItems.find(e => e.innerText.includes('中文') || e.innerText.includes('Chinese'));
     document.querySelector('.ytp-settings-button').click();
     return includeChinese;
 }
@@ -17,11 +16,11 @@ xhook.before(request => {
         document.querySelector('html').getAttribute('lang') === 'zh-CN'
     ) {
         var urlVideoId = request.url.split('?')[1].match(/(^|&)v=([^&]*)(&|$)/)[2];
-        if (!urlVideoId.includes('en') && videoId !== urlVideoId) {
+        if (!request.url.includes('&lang=en') && videoId !== urlVideoId) {
             videoId = urlVideoId;
             var language = '英语', subtitle = '字幕';
-            if (!Array.from(document.querySelectorAll('.ytp-settings-menu .ytp-menuitem-content'))
-                .find(e => e.innerText.includes(language))) {
+            let setting = document.querySelectorAll('.ytp-settings-menu .ytp-menuitem-content');
+            if (!Array.from(setting).find(e => e.innerText.includes(language))) {
                 request.xhr.abort();
                 document.querySelector('.ytp-settings-button').click();
                 Array.from(document.querySelectorAll('.ytp-settings-menu .ytp-menuitem'))
@@ -40,8 +39,8 @@ xhook.after((request, response) => {
     ) {
         var xhr = new XMLHttpRequest(), url;
         if (hasChinese()) {
-            url = `https://www.youtube.com/api/timedtext?v=${request.url.split('?')[1]
-                .match(/(^|&)v=([^&]*)(&|$)/)[2]}&lang=zh-CN&fmt=srv3&xhook`;
+            let v = request.url.split('?')[1].match(/(^|&)v=([^&]*)(&|$)/)[2];
+            url = `https://www.youtube.com/api/timedtext?v=${v}&lang=zh-CN&fmt=srv3&xhook`;
         } else {
             url = `${request.url}&tlang=zh-Hans`;
         }
